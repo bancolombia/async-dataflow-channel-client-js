@@ -77,10 +77,10 @@ export class AsyncClient {
         }
     }
 
-    private push(message: ChannelMessage) {
-        const data = Serializer.encode(message);
-        this.socket.send(data);
-    }
+    // private push(message: ChannelMessage) {
+    //     const data = Serializer.encode(message);
+    //     this.socket.send(data);
+    // }
 
     private sendHeartbeat(){
         if(!this.isActive){ return }

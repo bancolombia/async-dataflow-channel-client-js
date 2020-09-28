@@ -1,24 +1,17 @@
-## Mercurio Client JS
+## AsyncClient basic usage example
 
-Ejemplo de uso básico en Angular
 
 ```
-import { MercurioFactory } from 'merclijs';
+import { AsyncClient } from 'chanjs-client';
 
 ...
+const client = new AsyncClient({
+    socket_url: "wss://some.domain:8984/socket",
+    channel_ref: "some_channel_ref",
+    channel_secret: "secret_from_some_auth_service",
+    heartbeat_interval: 200
+});
 
-const mercurio = MercurioFactory.getClient({
-    apiKey: 'your-privided-api-key',
-    log: true,
-    authEndpoint: 'https://realhost/mercurio/external/auth',
-    cluster: 'us2',
-    fragmentsTimeout: 20000 // Completion Timeout for fragmented messages
-    token: token // Token real de autenticación a ser enviado al authEndpoint
-})
+client.listenEvent("event.some-name", message => someCallback(message.payload));
 
-mercurio.startListenSelfChannel(data => callbackDeApplicacion(data), err => fragmentTimeoutCallback(err));
-
-...
-//
-someRefreshTokenService.setUpdateTokenCallback(newToken => mercurio.updateEventsToken(newToken));
 ```
