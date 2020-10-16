@@ -1,4 +1,5 @@
-import {Serializer} from "./serializer";
+import {JsonDecoder} from "./json-decoder";
+import {MessageDecoder} from "./serializer"
 import {ChannelMessage} from "./channel-message";
 import {RetryTimer} from "./retry-timer";
 
@@ -17,15 +18,15 @@ export class AsyncClient {
     private readonly heartbeatIntervalMs : number;
     private tearingDown : boolean = false;
     private reconnectTimer : RetryTimer;
+    private serializer: MessageDecoder = new JsonDecoder();
 
-    constructor(private config: AsyncConfig, private transport : any = null) {
+    constructor(private config: AsyncConfig, private readonly transport : any = null) {
         const intWindow = typeof window !== "undefined" ? window : null;
         this.transport = transport || intWindow['WebSocket'];
         this.heartbeatIntervalMs = config.heartbeat_interval || 750;
         this.reconnectTimer = new RetryTimer(() => this.teardown(() => this.connect()));
         this.actualToken = config.channel_secret;
     }
-
 
     public connect(){
         if (this.socket) return;
@@ -58,7 +59,7 @@ export class AsyncClient {
     }
 
     private onSocketMessage(event) {
-        const message = Serializer.decode(event.data)
+        const message = this.serializer.decode(event)
         if (!this.isActive && message.event == "AuthOk"){
             this.isActive = true;
             console.log("#DBG5 change active to true!")
@@ -153,6 +154,10 @@ export class AsyncClient {
         return this.socket;
     }
 
+    public getDecoder() : MessageDecoder {
+        return this.serializer;
+    }
+
     private socketUrl() : string {
         return `${this.config.socket_url}?channel=${this.config.channel_ref}`;
     }
@@ -205,6 +210,7 @@ export interface AsyncConfig{
     socket_url: string;
     channel_ref:string;
     channel_secret: string;
+    only_json?: boolean;
     heartbeat_interval? : number;
 }
 

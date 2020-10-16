@@ -4,6 +4,7 @@ import {AsyncClient} from "../src/async-client";
 import { WebSocket, Server } from 'mock-socket';
 
 import {ChannelMessage} from "../src/channel-message";
+import {JsonDecoder} from "../src/json-decoder";
 
 const assert = chai.assert;
 
@@ -247,6 +248,25 @@ describe('Refresh token Tests', () =>  {
         assert.equal(message2, "CC1112223");
         client.disconnect();
         await new Promise(resolve => mockServer.stop(resolve));
+    });
+
+});
+
+
+describe('Setup and configuration Tests', () =>  {
+
+    const baseConf = {
+        socket_url: "wss://reconnect.local:8985/socket",
+        channel_ref: "ab771f3434aaghjgr",
+        channel_secret: "secret234342432dsfghjikujyg1221"
+    };
+
+    it('Should use Json decoder when specified' , () => {
+        let config = {...baseConf,
+            only_json: true
+        };
+        let client : AsyncClient = new AsyncClient(config, WebSocket);
+        assert.instanceOf(client.getDecoder(), JsonDecoder);
     });
 
 });
