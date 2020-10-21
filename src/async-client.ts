@@ -2,6 +2,8 @@ import {JsonDecoder} from "./json-decoder";
 import {MessageDecoder} from "./serializer"
 import {ChannelMessage} from "./channel-message";
 import {RetryTimer} from "./retry-timer";
+import {BinaryDecoder} from "./binary-decoder";
+import {Protocol} from "./protocol";
 
 export class AsyncClient {
 
@@ -18,7 +20,8 @@ export class AsyncClient {
     private readonly heartbeatIntervalMs : number;
     private tearingDown : boolean = false;
     private reconnectTimer : RetryTimer;
-    private serializer: MessageDecoder = new JsonDecoder();
+    private serializer: MessageDecoder;
+    private subProtocols: string[] = [Protocol.JSON]
 
     constructor(private config: AsyncConfig, private readonly transport : any = null) {
         const intWindow = typeof window !== "undefined" ? window : null;
@@ -26,11 +29,14 @@ export class AsyncClient {
         this.heartbeatIntervalMs = config.heartbeat_interval || 750;
         this.reconnectTimer = new RetryTimer(() => this.teardown(() => this.connect()));
         this.actualToken = config.channel_secret;
+        if (config.enable_binary_transport && typeof TextDecoder !== "undefined"){
+            this.subProtocols.push(Protocol.BINARY)
+        }
     }
 
     public connect(){
         if (this.socket) return;
-        this.socket = new this.transport(this.socketUrl());
+        this.socket = new this.transport(this.socketUrl(), this.subProtocols);
         this.socket.binaryType = "arraybuffer";
         this.socket.onopen     = (event) => this.onSocketOpen(event)
         this.socket.onerror    = error => this.onSocketError(error)
@@ -47,11 +53,20 @@ export class AsyncClient {
     }
 
     private onSocketOpen(event) {
+        this.selectSerializerForProtocol();
         this.isOpen = true;
         this.reconnectTimer.reset();
         this.resetHeartbeat();
         this.socket.send(`Auth::${this.actualToken}`)
         this.stateCallbacks.open.forEach((callback) => callback(event) );
+    }
+
+    private selectSerializerForProtocol() : void {
+        if (this.socket.protocol == Protocol.BINARY){
+            this.serializer = new BinaryDecoder();
+        }else {
+            this.serializer = new JsonDecoder();
+        }
     }
 
     private onSocketError(event) {
@@ -210,7 +225,7 @@ export interface AsyncConfig{
     socket_url: string;
     channel_ref:string;
     channel_secret: string;
-    only_json?: boolean;
+    enable_binary_transport?: boolean;
     heartbeat_interval? : number;
 }
 

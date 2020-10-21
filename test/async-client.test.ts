@@ -1,10 +1,13 @@
 import * as chai from 'chai';
 
 import {AsyncClient} from "../src/async-client";
-import { WebSocket, Server } from 'mock-socket';
+import {Server, WebSocket} from 'mock-socket';
 
 import {ChannelMessage} from "../src/channel-message";
 import {JsonDecoder} from "../src/json-decoder";
+import {BinaryDecoder} from "../src/binary-decoder";
+import "fast-text-encoding"
+import {Protocol} from "../src/protocol";
 
 const assert = chai.assert;
 
@@ -253,20 +256,98 @@ describe('Refresh token Tests', () =>  {
 });
 
 
-describe('Setup and configuration Tests', () =>  {
-
-    const baseConf = {
-        socket_url: "wss://reconnect.local:8985/socket",
+describe('Protocol negotiation Tests', function()  {
+    let client: AsyncClient;
+    let mockServer: Server;
+    let baseConf = {
+        socket_url: "wss://protocol.local/socket",
         channel_ref: "ab771f3434aaghjgr",
-        channel_secret: "secret234342432dsfghjikujyg1221"
+        channel_secret: "secret234342432dsfghjikujyg1221",
     };
 
-    it('Should use Json decoder when specified' , () => {
-        let config = {...baseConf,
-            only_json: true
-        };
-        let client : AsyncClient = new AsyncClient(config, WebSocket);
-        assert.instanceOf(client.getDecoder(), JsonDecoder);
+    afterEach((done) => {
+        client.disconnect()
+        mockServer.stop(() => done());
     });
 
+    it('Should use Json decoder when specified' , async() => {
+        let config = {...baseConf,
+            enable_binary_transport: false
+        };
+        initServer((protocols) => {
+            assert.deepEqual(protocols, [Protocol.JSON])
+            return protocols[0];
+        });
+
+        const decoder = await connectAndGetDecoderSelected(config);
+        assert.instanceOf(decoder, JsonDecoder);
+    });
+
+    it('Should use binary protocol when available' , async() => {
+        let config = {...baseConf,
+            enable_binary_transport: true
+        };
+        initServer((protocols) => {
+            assert.includeMembers(protocols, [Protocol.BINARY, Protocol.JSON])
+            return Protocol.BINARY;
+        });
+
+        const decoder = await connectAndGetDecoderSelected(config);
+        assert.instanceOf(decoder, BinaryDecoder);
+    });
+
+    it('Should fallback to json protocol when server select it' , async() => {
+        let config = {...baseConf,
+            enable_binary_transport: true
+        };
+        initServer((protocols) => {
+            assert.includeMembers(protocols, [Protocol.BINARY, Protocol.JSON])
+            return Protocol.JSON;
+        });
+
+        const decoder = await connectAndGetDecoderSelected(config);
+        assert.instanceOf(decoder, JsonDecoder);
+    });
+
+    it('Should fallback to Json decoder when Binary decoder is not available' , async() => {
+        let config = {...baseConf,
+            enable_binary_transport: true
+        };
+
+        //@ts-ignore
+        const decoder = global.TextDecoder;
+        // @ts-ignore
+        global.TextDecoder = undefined;
+
+        initServer((protocols) => {
+            assert.deepEqual(protocols, [Protocol.JSON])
+            return protocols[0];
+        });
+
+        const decoderSelected = await connectAndGetDecoderSelected(config);
+        assert.instanceOf(decoderSelected, JsonDecoder);
+
+        // @ts-ignore
+        global.TextDecoder = decoder;
+    });
+
+    let initServer = (selectProtocol) => {
+        mockServer = new Server(baseConf.socket_url, {
+            selectProtocol
+        })
+    };
+
+    let connectAndGetDecoderSelected = async(config) => {
+        client = new AsyncClient(config, WebSocket);
+        const connected = new Promise<boolean>(resolve => client.doOnSocketOpen(() => resolve(true)));
+        client.connect();
+        const result = await waitFor(connected);
+        assert.equal(result, true);
+        return client.getDecoder();
+    }
 });
+
+
+function waitFor(promise) {
+    return Promise.race([timeout(200), promise]);
+}
