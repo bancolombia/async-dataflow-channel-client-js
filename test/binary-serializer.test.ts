@@ -23,6 +23,18 @@ describe('Binary Serializer Tests', function()  {
         assert.deepEqual(message, new ChannelMessage("message_id2", "event_name2", "correlation_id2", "message_data1"));
     });
 
+    it('Should decode basic Auth Frame' , () => {
+
+        const data: ArrayBuffer = simpleAuthOkFrame();
+        const event  = new MessageEvent('test', {
+            data : data
+        });
+
+        const message = serializer.decode(event);
+
+        assert.deepEqual(message, new ChannelMessage("", "AuthOk", "", ""));
+    });
+
     it('Should decode UTF-8 with special characters binary payload' , () => {
         const plainPayload = "{\"strange_message: \"áéíóú@ñ&%$#!especíalç\", \"strange_message: \"áéíóú@ñ&%$#!especíal2ç\"}";
         const data: ArrayBuffer = specialBinaryData();
@@ -48,6 +60,18 @@ function binaryData() : ArrayBuffer {
         114, 114, 101, 108, 97, 116, 105, 111, 110, 95, 105, 100, 50, 101, 118, 101,
         110, 116, 95, 110, 97, 109, 101, 50, 109, 101, 115, 115, 97, 103, 101, 95,
         100, 97, 116, 97, 49];
+    const byteArray = new Uint8Array(rawData);
+    return byteArray.buffer;
+}
+
+/*
+  message_id: "",
+  correlation_id: "",
+  message_data: "",
+  event_name: "AuthOk"
+*/
+function simpleAuthOkFrame() {
+    const rawData = [255, 0, 0, 6, 65, 117, 116, 104, 79, 107]
     const byteArray = new Uint8Array(rawData);
     return byteArray.buffer;
 }

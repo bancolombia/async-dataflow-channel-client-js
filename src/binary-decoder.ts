@@ -38,6 +38,9 @@ class Extractor {
     }
 
     public decodeChunk(size: number) : string {
+        if (size === 0) {
+            return "";
+        }
         const endIndex = size ? this.offset + size : this.buffer.byteLength + 1;
         const data = this.textDecoder.decode(this.buffer.slice(this.offset, endIndex));
         this.offset = endIndex;

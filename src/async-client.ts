@@ -29,6 +29,8 @@ export class AsyncClient {
         this.heartbeatIntervalMs = config.heartbeat_interval || 750;
         this.reconnectTimer = new RetryTimer(() => this.teardown(() => this.connect()));
         this.actualToken = config.channel_secret;
+        console.log(config.enable_binary_transport)
+        console.log(typeof TextDecoder)
         if (config.enable_binary_transport && typeof TextDecoder !== "undefined"){
             this.subProtocols.push(Protocol.BINARY)
         }
@@ -36,6 +38,7 @@ export class AsyncClient {
 
     public connect(){
         if (this.socket) return;
+        console.log("Subprotocols: ", this.subProtocols)
         this.socket = new this.transport(this.socketUrl(), this.subProtocols);
         this.socket.binaryType = "arraybuffer";
         this.socket.onopen     = (event) => this.onSocketOpen(event)
@@ -88,8 +91,8 @@ export class AsyncClient {
             this.ackMessage(message);
             this.handleMessage(message);
         }else {
-            const message = "Unexpected message before AuthOK";
-            console.error(message, event.data);
+            const txt = "Unexpected message before AuthOK";
+            console.error(txt, message);
         }
     }
 
