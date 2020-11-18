@@ -1,5 +1,16 @@
-## AsyncClient basic usage example
+# Channel client JS
+Javascript library for async data flow  implementation for browsers.
 
+## How to use
+
+### Install
+
+```npm
+npm install chanjs-client --save
+```
+
+
+### AsyncClient basic usage example
 
 ```
 import { AsyncClient } from 'chanjs-client';
@@ -15,3 +26,7 @@ const client = new AsyncClient({
 client.listenEvent("event.some-name", message => someCallback(message.payload));
 
 ```
+
+## How can I help?
+
+Review the [issues](https://github.com/bancolombia/async-dataflow-channel-client-js/issues). Read [how Contributing](hhttps://github.com/bancolombia/async-dataflow-channel-client-js/wiki/Contributing).
