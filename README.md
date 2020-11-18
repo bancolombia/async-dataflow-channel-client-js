@@ -1,6 +1,12 @@
 # Channel client JS
 Javascript library for async data flow  implementation for browsers.
 
+- [Channel Client JS](#channel-client-js)
+- [How to use](#how-to-use)
+  - [Install](#install)
+  - [Usage](#asyncClient-basic-usage-example)
+- [How can I help?](#how-can-i-help)
+
 ## How to use
 
 ### Install
