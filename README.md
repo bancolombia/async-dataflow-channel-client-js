@@ -20,7 +20,7 @@ npm install chanjs-client --save
 ### AsyncClient basic usage example
 You can understand better the flow with this sequence diagram.
 
-<img src="" width="600">
+<img src="https://raw.githubusercontent.com/bancolombia/async-dataflow-channel-client-js/master/doc/sequence-diagram-async-data-flow.png?token=AC6MTEXO4MK7Y2TR36L7GH27YT2AS" width="600">
 
 
 ```javascript
