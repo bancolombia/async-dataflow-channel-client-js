@@ -18,6 +18,10 @@ npm install chanjs-client --save
 
 
 ### AsyncClient basic usage example
+You can understand better the flow with this sequence diagram.
+
+<img src="" width="600">
+
 
 ```javascript
 import { AsyncClient } from 'chanjs-client';
@@ -36,7 +40,8 @@ const client = new AsyncClient({
    | socket_url                          |[async-dataflow-channel-sender](https://github.com/bancolombia/async-dataflow-channel-sender) cluster url         |       |
    | channel_ref                          | channel getted from rest service of [async-dataflow-channel-sender](https://github.com/bancolombia/async-dataflow-channel-sender)   |                    |
    | channel_secret                          | token getted from rest service of [async-dataflow-channel-sender](https://github.com/bancolombia/async-dataflow-channel-sender)|                    |
-   | heartbeat_interval                          | time in milliseconds to verify socket connection |                   |
+   | heartbeat_interval                          | time in milliseconds to verify socket connection  **this parameter must be less than the socket_idle_timeout on the channel sender**|       750            |
+  | enable_binary_transport                          | boolean parameter to indicate use binary protocol |       false            |
    
 
 ```javascript
