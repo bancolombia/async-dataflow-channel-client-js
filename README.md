@@ -1,3 +1,5 @@
+### The decision was made to have all async data flow components in a [single repository.](https://github.com/bancolombia/async-dataflow)
+
 # Channel client JS
 [![NPM](https://nodei.co/npm/chanjs-client.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/chanjs-client/)
 
