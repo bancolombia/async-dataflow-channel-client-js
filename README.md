@@ -48,10 +48,15 @@ const client = new AsyncClient({
    
 
 ```javascript
-client.listenEvent("event.some-name", message => someCallback(message.payload));
+client.listenEvent("event.some.name", message => someCallback(message.payload));
 ```
 
+You can also use amqp-match style name expressions when susbscribing to events. Examples:
 
+```javascript
+client.listenEvent("event.#", message => someCallback(message.payload));
+client.listenEvent("event.some.*", message => someCallback(message.payload));
+```
 
 ## How can I help?
 
